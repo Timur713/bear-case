@@ -34,7 +34,7 @@ def checkS(width, height):
     return False
 
 
-filename = 'TEST IMAGES/withBears/22.JPG'
+filename = 'TEST IMAGES/withBears/9.JPG'
 image = read_image(filename)
 
 orig_name = get_original_filename(filename)
@@ -86,15 +86,11 @@ for i in range(1, y1.size):
                 # print found bear coordinates
                 print(bears_count, "медведь : (", x + x1[j - 1], ',', y + y1[i - 1], ") площадь", w * h, '=', w, '*', h)
 
-        cv2.imshow('mask', mask)
-        cv2.imshow('original', crop_copy)
-        cv2.waitKey()
-cv2.destroyAllWindows()
 result_filename = orig_name + "_{}_bears".format(bears_count) + ".jpg"
 cv2.imwrite(result_filename, original_img)
 res_img = read_image(result_filename)
 res_img = cv2.resize(res_img, (1650, 900))
-while (1):
+while 1:
     cv2.imshow(result_filename, res_img)
     k = cv2.waitKey(0) & 0xff
     # Exit if ESC pressed
