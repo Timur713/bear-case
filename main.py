@@ -34,7 +34,7 @@ def checkS(width, height):
     return False
 
 
-filename = 'TEST IMAGES/withBears/9.JPG'
+filename = 'TEST IMAGES/withBears/22.JPG'
 image = read_image(filename)
 
 orig_name = get_original_filename(filename)
@@ -54,6 +54,7 @@ def find_contours(mask):
     return contours[0] if len(contours) == 2 else contours[1]
 
 
+
 for i in range(1, y1.size):
     for j in range(1, x1.size):
         crop = image[y1[i - 1]:y1[i], x1[j - 1]:x1[j]]
@@ -66,31 +67,54 @@ for i in range(1, y1.size):
 
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
 
-        contours = find_contours(mask)
-        for c in contours:
-            x, y, w, h = cv2.boundingRect(c)
+        k = 3
+        arr = []
 
-            if checkS(w, h):
-                # draw crop contours
-                cv2.rectangle(crop_copy, (x, y), (x + w, y + h), (0, 0, 255), 2)
-                # increase contour size
-                x -= 5
-                y -= 5
-                w += 5
-                h += 5
-                # draw original image contours
-                cv2.rectangle(original_img, (x + x1[j - 1], y + y1[i - 1]), (x + x1[j - 1] + w, y + y1[i - 1] + h),
-                              (0, 0, 255), 1)
-                # increase bear count
-                bears_count += 1
-                # print found bear coordinates
-                print(bears_count, "медведь : (", x + x1[j - 1], ',', y + y1[i - 1], ") площадь", w * h, '=', w, '*', h)
+        mask1 = crop.copy()
 
+        mask2 = cv2.cvtColor(np.zeros((mask1.shape[0], mask1.shape[1], 3), np.uint8), cv2.COLOR_RGB2BGR)
+
+
+        non_zero = np.argwhere(mask)
+        if len(non_zero):
+            for e in non_zero:
+                q, p = e
+                K = float(mask1[q, p][0]) * float(mask1[q, p][1]) / float(mask1[q, p][2])
+                if K >= k:
+                    arr.append(K)
+                    mask2[q, p] = [255, 255, 255]     
+            mask2 = cv2.cvtColor(mask2, cv2.COLOR_BGR2GRAY)
+            contours = find_contours(mask2)
+            for c in contours:
+                x, y, w, h = cv2.boundingRect(c)
+
+                if checkS(w, h):
+                    # draw crop contours
+                    cv2.rectangle(crop_copy, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                    # increase contour size
+                    x -= 5
+                    y -= 5
+                    w += 5
+                    h += 5
+                    cv2.rectangle(original_img, (x + x1[j - 1], y + y1[i - 1]), (x + x1[j - 1] + w, y + y1[i - 1] + h),
+                                  (0, 0, 255), 1)
+                    # increase bear count
+                    bears_count += 1
+                    # print found bear coordinates
+                    print(bears_count, "медведь : (", x + x1[j - 1], ',', y + y1[i - 1], ") площадь", w * h, '=', w,
+                          '*', h)
+
+            cv2.imshow('mask', mask)
+            # cv2.imshow('mask1', mask1)
+            cv2.imshow('mask2', mask2)
+            cv2.imshow('original', crop_copy)
+            cv2.waitKey()
+cv2.destroyAllWindows()
 result_filename = orig_name + "_{}_bears".format(bears_count) + ".jpg"
 cv2.imwrite(result_filename, original_img)
 res_img = read_image(result_filename)
 res_img = cv2.resize(res_img, (1650, 900))
-while 1:
+while (1):
     cv2.imshow(result_filename, res_img)
     k = cv2.waitKey(0) & 0xff
     # Exit if ESC pressed
